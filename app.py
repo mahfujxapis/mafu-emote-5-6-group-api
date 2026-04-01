@@ -1,15 +1,13 @@
-
-import requests , os , psutil , sys , jwt , pickle , json , binascii , time , urllib3 , base64 , datetime , re , socket , threading , ssl , pytz , aiohttp , random , asyncio
+import requests , os , psutil , sys , jwt , pickle , json , binascii , time , urllib3 , base64 , datetime , re , socket , threading , ssl , pytz , aiohttp
 from flask import Flask, request, jsonify
 from protobuf_decoder.protobuf_decoder import Parser
 from xC4 import * ; from xHeaders import *
-from datetime import datetime, timedelta
+from datetime import datetime
 from google.protobuf.timestamp_pb2 import Timestamp
 from concurrent.futures import ThreadPoolExecutor
-from threading import Thread, Lock
+from threading import Thread
 from Pb2 import DEcwHisPErMsG_pb2 , MajoRLoGinrEs_pb2 , PorTs_pb2 , MajoRLoGinrEq_pb2 , sQ_pb2 , Team_msg_pb2
 from cfonts import render, say
-
 
 
 #EMOTES BY MG24 X CODEX
@@ -29,11 +27,6 @@ spam_uid = None
 Spy = False
 Chat_Leave = False
 #------------------------------------------#
-
-# ============ SPAM SYSTEM VARIABLES ============
-spam_tasks = {}  # {uid: {'task': asyncio.Task, 'end_time': datetime, 'active': True}}
-spam_lock = Lock()
-rotate_badges = ['s1', 's2', 's3', 's4', 's5', 's6', 's7', 's8']
 
 app = Flask(__name__)
 
@@ -69,7 +62,7 @@ async def encrypted_proto(encoded_hex):
     padded_message = pad(encoded_hex, AES.block_size)
     encrypted_payload = cipher.encrypt(padded_message)
     return encrypted_payload
-
+    
 async def GeNeRaTeAccEss(uid , password):
     url = "https://100067.connect.garena.com/oauth/guest/token/grant"
     headers = {
@@ -191,13 +184,13 @@ async def DecodeWhisperMessage(hex_packet):
     proto = DEcwHisPErMsG_pb2.DecodeWhisper()
     proto.ParseFromString(packet)
     return proto
-
+    
 async def decode_team_packet(hex_packet):
     packet = bytes.fromhex(hex_packet)
     proto = sQ_pb2.recieved_chat()
     proto.ParseFromString(packet)
     return proto
-
+    
 async def xAuThSTarTuP(TarGeT, token, timestamp, key, iv):
     uid_hex = hex(TarGeT)[2:]
     uid_length = len(uid_hex)
@@ -211,12 +204,12 @@ async def xAuThSTarTuP(TarGeT, token, timestamp, key, iv):
     elif uid_length == 7: headers = '000000000'
     else: print('Unexpected length') ; headers = '0000000'
     return f"0115{headers}{uid_hex}{encrypted_timestamp}00000{encrypted_packet_length}{encrypted_packet}"
-
+     
 async def cHTypE(H):
     if not H: return 'Squid'
     elif H == 1: return 'CLan'
     elif H == 2: return 'PrivaTe'
-
+    
 async def SEndMsG(H , message , Uid , chat_id , key , iv):
     TypE = await cHTypE(H)
     if TypE == 'Squid': msg_packet = await xSEndMsgsQ(message , chat_id , key , iv)
@@ -228,7 +221,7 @@ async def SEndPacKeT(OnLinE , ChaT , TypE , PacKeT):
     if TypE == 'ChaT' and ChaT: whisper_writer.write(PacKeT) ; await whisper_writer.drain()
     elif TypE == 'OnLine': online_writer.write(PacKeT) ; await online_writer.drain()
     else: return 'UnsoPorTed TypE ! >> ErrrroR (:():)' 
-
+           
 async def TcPOnLine(ip, port, key, iv, AutHToKen, reconnect_delay=0.5):
     global online_writer , spam_room , whisper_writer , spammer_uid , spam_chat_id , spam_uid , XX , uid , Spy,data2, Chat_Leave
     while True:
@@ -241,7 +234,7 @@ async def TcPOnLine(ip, port, key, iv, AutHToKen, reconnect_delay=0.5):
             while True:
                 data2 = await reader.read(9999)
                 if not data2: break
-
+                
                 if data2.hex().startswith('0500') and len(data2.hex()) > 1000:
                     try:
                         print(data2.hex()[10:])
@@ -281,7 +274,7 @@ async def TcPOnLine(ip, port, key, iv, AutHToKen, reconnect_delay=0.5):
 
         except Exception as e: print(f"- ErroR With {ip}:{port} - {e}") ; online_writer = None
         await asyncio.sleep(reconnect_delay)
-
+                            
 async def TcPChaT(ip, port, AutHToKen, key, iv, LoGinDaTaUncRypTinG, ready_event, region , reconnect_delay=0.5):
     print(region, 'TCP CHAT')
 
@@ -305,7 +298,7 @@ async def TcPChaT(ip, port, AutHToKen, key, iv, LoGinDaTaUncRypTinG, ready_event
             while True:
                 data = await reader.read(9999)
                 if not data: break
-
+                
                 if data.hex().startswith("120000"):
 
                     msg = await DeCode_PackEt(data.hex()[10:])
@@ -498,7 +491,7 @@ async def TcPChaT(ip, port, AutHToKen, key, iv, LoGinDaTaUncRypTinG, ready_event
                                             if uid6:
                                                 H = await Emote_k(uid6, idT, key, iv, region)
                                                 await SEndPacKeT(whisper_writer, online_writer, 'OnLine', H)
-
+                                        
 
                                     except Exception as e:
                                         pass
@@ -511,11 +504,11 @@ async def TcPChaT(ip, port, AutHToKen, key, iv, LoGinDaTaUncRypTinG, ready_event
                             P = await SEndMsG(response.Data.chat_type , message , uid , chat_id , key , iv)
                             await SEndPacKeT(whisper_writer , online_writer , 'ChaT' , P)
                         response = None
-
+                            
             whisper_writer.close() ; await whisper_writer.wait_closed() ; whisper_writer = None
-
-
-
+                    
+                    	
+                    	
         except Exception as e: print(f"ErroR {ip}:{port} - {e}") ; whisper_writer = None
         await asyncio.sleep(reconnect_delay)
 # ---------------------- FLASK ROUTES ----------------------
@@ -525,17 +518,17 @@ loop = None
 async def process_badge_request(cmd, target_uid):
     """শুধুমাত্র প্যাকেট সেন্ড করবে, গেমে কোনো মেসেজ দেবে না"""
     global key, iv, region, online_writer
-
+    
     if not target_uid.isdigit():
         print(f"❌ Invalid UID: {target_uid}")
         return
 
     badge_value = BADGE_VALUES.get(cmd, 1048576)
-
+    
     try:
         # প্যাকেট তৈরি করা
         badge_packet = await request_join_with_badge(target_uid, badge_value, key, iv, region)
-
+        
         if badge_packet and online_writer:
             # ৫ বার প্যাকেট পাঠানো (Spam effect)
             for i in range(5):
@@ -609,7 +602,7 @@ async def perform_emote(team_code: str, uids: list, emote_id: int):
 
 async def perform_invite_5(target_uid: int):
     global key, iv, region, online_writer, whisper_writer, BOT_UID
-
+    
     if online_writer is None:
         raise Exception("Bot is not online")
 
@@ -617,22 +610,22 @@ async def perform_invite_5(target_uid: int):
         # ১. স্কোয়াড ওপেন করা
         PAc = await OpEnSq(key, iv, region)
         await SEndPacKeT(None, online_writer, 'OnLine', PAc)
-
+        
         # ২. ৫ প্লেয়ার মোড সেট করা
         C = await cHSq(5, target_uid, key, iv, region)
         await asyncio.sleep(0.3)
         await SEndPacKeT(None, online_writer, 'OnLine', C)
-
+        
         # ৩. ইনভাইট পাঠানো
         V = await SEnd_InV(5, target_uid, key, iv, region)
         await asyncio.sleep(0.3)
         await SEndPacKeT(None, online_writer, 'OnLine', V)
-
+        
         # ৪. কিছুক্ষণ পর লিভ নেওয়া
         await asyncio.sleep(8)
         E = await ExiT(BOT_UID, key, iv)
         await SEndPacKeT(None, online_writer, 'OnLine', E)
-
+        
         return True
     except Exception as e:
         print(f"Invite Error: {e}")
@@ -640,7 +633,7 @@ async def perform_invite_5(target_uid: int):
 
 async def perform_invite_3(target_uid: int):
     global key, iv, region, online_writer, whisper_writer, BOT_UID
-
+    
     if online_writer is None:
         raise Exception("Bot is not online")
 
@@ -648,22 +641,22 @@ async def perform_invite_3(target_uid: int):
         # ১. স্কোয়াড ওপেন করা
         PAc = await OpEnSq(key, iv, region)
         await SEndPacKeT(None, online_writer, 'OnLine', PAc)
-
+        
         # ২. ৫ প্লেয়ার মোড সেট করা
         C = await cHSq(3, target_uid, key, iv, region)
         await asyncio.sleep(0.3)
         await SEndPacKeT(None, online_writer, 'OnLine', C)
-
+        
         # ৩. ইনভাইট পাঠানো
         V = await SEnd_InV(3, target_uid, key, iv, region)
         await asyncio.sleep(0.3)
         await SEndPacKeT(None, online_writer, 'OnLine', V)
-
+        
         # ৪. কিছুক্ষণ পর লিভ নেওয়া
         await asyncio.sleep(8)
         E = await ExiT(BOT_UID, key, iv)
         await SEndPacKeT(None, online_writer, 'OnLine', E)
-
+        
         return True
     except Exception as e:
         print(f"Invite Error: {e}")
@@ -671,7 +664,7 @@ async def perform_invite_3(target_uid: int):
 
 async def perform_invite_6(target_uid: int):
     global key, iv, region, online_writer, whisper_writer, BOT_UID
-
+    
     if online_writer is None:
         raise Exception("Bot is not online")
 
@@ -679,22 +672,22 @@ async def perform_invite_6(target_uid: int):
         # ১. স্কোয়াড ওপেন করা
         PAc = await OpEnSq(key, iv, region)
         await SEndPacKeT(None, online_writer, 'OnLine', PAc)
-
+        
         # ২. ৫ প্লেয়ার মোড সেট করা
         C = await cHSq(6, target_uid, key, iv, region)
         await asyncio.sleep(0.3)
         await SEndPacKeT(None, online_writer, 'OnLine', C)
-
+        
         # ৩. ইনভাইট পাঠানো
         V = await SEnd_InV(6, target_uid, key, iv, region)
         await asyncio.sleep(0.3)
         await SEndPacKeT(None, online_writer, 'OnLine', V)
-
+        
         # ৪. কিছুক্ষণ পর লিভ নেওয়া
         await asyncio.sleep(8)
         E = await ExiT(BOT_UID, key, iv)
         await SEndPacKeT(None, online_writer, 'OnLine', E)
-
+        
         return True
     except Exception as e:
         print(f"Invite Error: {e}")
@@ -795,304 +788,7 @@ BADGE_VALUES = {
     's8': 134217728
 }
 
-# ============ SPAM SYSTEM FUNCTIONS ============
-
-def parse_time(time_str):
-    """
-    Time string parse করে minutes এ রিটার্ন করে
-    30m = 30 minutes
-    2h = 120 minutes  
-    30d = 43200 minutes (30 days max)
-    """
-    time_str = time_str.lower().strip()
-
-    if time_str.endswith('m'):
-        try:
-            return int(time_str[:-1])
-        except:
-            return None
-    elif time_str.endswith('h'):
-        try:
-            return int(time_str[:-1]) * 60
-        except:
-            return None
-    elif time_str.endswith('d'):
-        try:
-            days = int(time_str[:-1])
-            if days > 30:
-                return None  # Max 30 days
-            return days * 24 * 60
-        except:
-            return None
-    else:
-        # শুধু number হলে minutes ধরে নিবে
-        try:
-            return int(time_str)
-        except:
-            return None
-
-async def spam_worker(target_uid, duration_minutes):
-    """
-    Background worker যে specific UID তে continuous spam করবে
-    S1-S8 random rotate হবে, কেউ জানবে না কোনটা যাচ্ছে
-    """
-    global online_writer, key, iv, region, spam_tasks
-
-    end_time = datetime.now() + timedelta(minutes=duration_minutes)
-
-    print(f"🚀 SPAM STARTED for UID {target_uid} | Duration: {duration_minutes}m | Until: {end_time}")
-
-    while datetime.now() < end_time:
-        # চেক করো এই UID এর spam বন্ধ করা হয়েছে কিনা
-        with spam_lock:
-            if target_uid not in spam_tasks or not spam_tasks[target_uid]['active']:
-                print(f"🛑 SPAM STOPPED for {target_uid}")
-                return
-
-        try:
-            # Random badge select (S1-S8) - কেউ জানবে না কোনটা যাচ্ছে!
-            random_badge = random.choice(rotate_badges)
-            badge_value = BADGE_VALUES[random_badge]
-
-            # Packet তৈরি
-            badge_packet = await request_join_with_badge(target_uid, badge_value, key, iv, region)
-
-            if badge_packet and online_writer:
-                # Fast spam - 10 বার পাঠাও
-                for _ in range(10):
-                    await SEndPacKeT(None, online_writer, 'OnLine', badge_packet)
-                    await asyncio.sleep(0.05)  # 50ms gap
-
-                print(f"✅ SPAM | UID: {target_uid} | Badge: {random_badge} | Time left: {(end_time - datetime.now()).seconds//60}m")
-            else:
-                print(f"❌ Bot not connected for spam")
-
-        except Exception as e:
-            print(f"❌ Spam error for {target_uid}: {e}")
-
-        # Random interval between 1-3 seconds (unpredictable)
-        await asyncio.sleep(random.uniform(1, 3))
-
-    # Time শেষ, cleanup
-    with spam_lock:
-        if target_uid in spam_tasks:
-            spam_tasks[target_uid]['active'] = False
-            spam_tasks[target_uid]['end_time'] = None
-
-    print(f"✅ SPAM COMPLETED for UID {target_uid}")
-
-async def start_spam(target_uid, time_str):
-    """Spam শুরু করার function"""
-    global loop, spam_tasks
-
-    duration = parse_time(time_str)
-    if duration is None:
-        return False, "Invalid time format! Use: 30m, 2h, 30d (max)"
-
-    if duration <= 0:
-        return False, "Time must be positive!"
-
-    with spam_lock:
-        # আগের task আছে কিনা চেক করো
-        if target_uid in spam_tasks and spam_tasks[target_uid]['active']:
-            # আগের task cancel করো
-            old_task = spam_tasks[target_uid]['task']
-            if old_task and not old_task.done():
-                old_task.cancel()
-
-        # নতুন task তৈরি করো
-        task = asyncio.create_task(spam_worker(target_uid, duration))
-        spam_tasks[target_uid] = {
-            'task': task,
-            'end_time': datetime.now() + timedelta(minutes=duration),
-            'active': True
-        }
-
-    return True, f"Spam started for {target_uid} | Duration: {time_str}"
-
-async def stop_spam(target_uid):
-    """Spam বন্ধ করার function"""
-    global spam_tasks
-
-    with spam_lock:
-        if target_uid not in spam_tasks or not spam_tasks[target_uid]['active']:
-            return False, "No active spam found for this UID"
-
-        # Task বন্ধ করো
-        task = spam_tasks[target_uid]['task']
-        if task and not task.done():
-            task.cancel()
-
-        spam_tasks[target_uid]['active'] = False
-        spam_tasks[target_uid]['end_time'] = None
-
-    return True, f"Spam stopped for {target_uid}"
-
-@app.route('/spam')
-def spam_api():
-    """
-    /spam?uid={uid}&time=30m
-    /spam?uid={uid}&time=2h  
-    /spam?uid={uid}&time=30d (max)
-    """
-    global loop
-    target_uid = request.args.get('uid')
-    time_str = request.args.get('time')
-
-    if not target_uid or not time_str:
-        return jsonify({"status": "error", "message": "Missing uid or time"}), 400
-
-    if not target_uid.isdigit():
-        return jsonify({"status": "error", "message": "Invalid UID"}), 400
-
-    success, message = asyncio.run_coroutine_threadsafe(
-        start_spam(target_uid, time_str), loop
-    ).result()
-
-    if success:
-        return jsonify({
-            "status": "success",
-            "uid": target_uid,
-            "time": time_str,
-            "message": message
-        })
-    else:
-        return jsonify({"status": "error", "message": message}), 400
-
-@app.route('/spam-stop')
-def spam_stop_api():
-    """
-    /spam-stop?uid={uid}
-    """
-    global loop
-    target_uid = request.args.get('uid')
-
-    if not target_uid:
-        return jsonify({"status": "error", "message": "Missing uid"}), 400
-
-    if not target_uid.isdigit():
-        return jsonify({"status": "error", "message": "Invalid UID"}), 400
-
-    success, message = asyncio.run_coroutine_threadsafe(
-        stop_spam(target_uid), loop
-    ).result()
-
-    if success:
-        return jsonify({
-            "status": "success",
-            "uid": target_uid,
-            "message": message
-        })
-    else:
-        return jsonify({"status": "error", "message": message}), 400
-
-@app.route('/spam-status')
-def spam_status_api():
-    """Active spam গুলোর status দেখাও"""
-    with spam_lock:
-        active_spams = {}
-        for uid, data in spam_tasks.items():
-            if data['active']:
-                time_left = (data['end_time'] - datetime.now()).seconds // 60 if data['end_time'] else 0
-                active_spams[uid] = {
-                    "time_left_minutes": max(0, time_left),
-                    "end_time": data['end_time'].strftime("%Y-%m-%d %H:%M:%S") if data['end_time'] else None
-                }
-
-    return jsonify({
-        "status": "success",
-        "active_spams": active_spams,
-        "total_active": len(active_spams)
-    })
-
-# ============ RANDOM ROTATE BADGE SYSTEM ============
-
-async def process_random_badge(target_uid):
-    """Random badge send করে (S1-S8 এর যেকোনো একটা)"""
-    global key, iv, region, online_writer
-
-    if not target_uid.isdigit():
-        print(f"❌ Invalid UID: {target_uid}")
-        return False
-
-    # Random badge select
-    random_badge = random.choice(rotate_badges)
-    badge_value = BADGE_VALUES[random_badge]
-
-    try:
-        badge_packet = await request_join_with_badge(target_uid, badge_value, key, iv, region)
-
-        if badge_packet and online_writer:
-            for i in range(5):
-                await SEndPacKeT(None, online_writer, 'OnLine', badge_packet)
-                await asyncio.sleep(0.1)
-            print(f"✅ Random {random_badge} sent to {target_uid}")
-            return True
-        else:
-            print(f"❌ Could not send random badge")
-            return False
-
-    except Exception as e:
-        print(f"❌ Random badge error: {e}")
-        return False
-
-# Individual badge routes with RANDOM ROTATE capability
-@app.route('/s1')
-def route_s1(): 
-    return trigger_badge('s1')
-
-@app.route('/s2')
-def route_s2(): 
-    return trigger_badge('s2')
-
-@app.route('/s3')
-def route_s3(): 
-    return trigger_badge('s3')
-
-@app.route('/s4')
-def route_s4(): 
-    return trigger_badge('s4')
-
-@app.route('/s5')
-def route_s5(): 
-    return trigger_badge('s5')
-
-@app.route('/s6')
-def route_s6(): 
-    return trigger_badge('s6')
-
-@app.route('/s7')
-def route_s7(): 
-    return trigger_badge('s7')
-
-@app.route('/s8')
-def route_s8(): 
-    return trigger_badge('s8')
-
-# RANDOM ROTATE ROUTE - কেউ জানবে না কোনটা যাচ্ছে!
-@app.route('/random')
-def route_random():
-    """Random S1-S8 এর যেকোনো একটা badge যাবে"""
-    global loop
-    uid = request.args.get('uid')
-    if not uid: 
-        return jsonify({"error": "uid is required"}), 400
-
-    asyncio.run_coroutine_threadsafe(process_random_badge(uid), loop)
-    return jsonify({
-        "status": "triggered", 
-        "type": "random_rotate", 
-        "target_uid": uid,
-        "message": "Random badge (S1-S8) sent - unpredictable!"
-    })
-
-def trigger_badge(cmd):
-    uid = request.args.get('uid')
-    if not uid: 
-        return jsonify({"error": "uid is required"}), 400
-    asyncio.run_coroutine_threadsafe(process_badge_request(cmd, uid), loop)
-    return jsonify({"status": "triggered", "cmd": cmd, "target_uid": uid})
-
+# --- Flask Routes ---
 
 @app.route('/badge')
 def badge_api():
@@ -1100,9 +796,33 @@ def badge_api():
     target_uid = request.args.get('uid')
     if not cmd or not target_uid:
         return jsonify({"status": "error", "message": "Missing cmd or uid"}), 400
-
+    
     asyncio.run_coroutine_threadsafe(process_badge_request(cmd, target_uid), loop)
     return jsonify({"status": "success", "command": cmd, "target": target_uid})
+
+# /s1, /s2... /s8 individual routes
+@app.route('/s1')
+def route_s1(): return trigger_badge('s1')
+@app.route('/s2')
+def route_s2(): return trigger_badge('s2')
+@app.route('/s3')
+def route_s3(): return trigger_badge('s3')
+@app.route('/s4')
+def route_s4(): return trigger_badge('s4')
+@app.route('/s5')
+def route_s5(): return trigger_badge('s5')
+@app.route('/s6')
+def route_s6(): return trigger_badge('s6')
+@app.route('/s7')
+def route_s7(): return trigger_badge('s7')
+@app.route('/s8')
+def route_s8(): return trigger_badge('s8')
+
+def trigger_badge(cmd):
+    uid = request.args.get('uid')
+    if not uid: return jsonify({"error": "uid is required"}), 400
+    asyncio.run_coroutine_threadsafe(process_badge_request(cmd, uid), loop)
+    return jsonify({"status": "triggered", "cmd": cmd, "target_uid": uid})
 
 
 @app.route('/join')
@@ -1212,21 +932,21 @@ def load_accounts_from_file():
     try:
         with open('account.txt', 'r') as f:
             lines = f.readlines()
-
+        
         for line in lines:
             line = line.strip()
             if not line or line.startswith('#'):  # Empty line বা comment skip
                 continue
-
+            
             if ':' in line:
                 parts = line.split(':')
                 uid = parts[0].strip()
                 password = parts[1].strip()
                 accounts.append((uid, password))
-
+        
         print(f"✅ Loaded {len(accounts)} accounts from account.txt")
         return accounts
-
+    
     except FileNotFoundError:
         print("❌ account.txt file not found!")
         print("📄 Creating sample account.txt...")
@@ -1235,7 +955,7 @@ def load_accounts_from_file():
             f.write("# Example:\n")
             f.write("# 4274303600:9D2579A689882D2B2B6E156C2C14DC5301796BDA517D98EA5D86A074D4349359\n")
         return []
-
+    
     except Exception as e:
         print(f"❌ Error loading accounts: {e}")
         return []
@@ -1248,18 +968,18 @@ async def MaiiiinE():
 
     # ====== account.txt থেকে অ্যাকাউন্ট লোড ======
     accounts = load_accounts_from_file()
-
+    
     if not accounts:
         print("❌ No accounts found in account.txt")
         print("📝 Please add accounts in format: UID:PASSWORD")
         return None
-
+    
     # প্রথম অ্যাকাউন্ট ব্যবহার করো (চাইলে র্যান্ডম বা সব অ্যাকাউন্ট ব্যবহার করতে পারো)
     Uid, Pw = accounts[0]
-
+    
     # BOT UID সেট করো (ঐচ্ছিক - চাইলে ফাইলে UID রাখতে পারো)
     BOT_UID = int(Uid)  # অথবা আলাদা BOT_UID রাখতে চাইলে পরিবর্তন করো
-
+    
     print(f"🔑 Logging in with UID: {Uid}")
 
     open_id, access_token = await GeNeRaTeAccEss(Uid, Pw)
@@ -1320,19 +1040,8 @@ async def MaiiiinE():
 
     os.system('clear')
     print(render('DEV', colors=['white', 'green'], align='center'))
-    print(f"\n - BoT STarTing And OnLine on TarGet : {TarGeT} | BOT NAME : {acc_name}")
+    print(f"\n - BoT STarTinG And OnLine on TarGet : {TarGeT} | BOT NAME : {acc_name}")
     print(" - BoT sTaTus > GooD | OnLinE ! (: \n")
-
-    # Spam System Status
-    print("🚀 SPAM SYSTEM ACTIVE!")
-    print("📌 Endpoints:")
-    print("   /spam?uid={uid}&time=30m")
-    print("   /spam?uid={uid}&time=2h") 
-    print("   /spam?uid={uid}&time=30d (max)")
-    print("   /spam-stop?uid={uid}")
-    print("   /spam-status")
-    print("   /random?uid={uid} (Random S1-S8)")
-    print("")
 
     flask_thread = threading.Thread(target=run_flask, daemon=True)
     flask_thread.start()
